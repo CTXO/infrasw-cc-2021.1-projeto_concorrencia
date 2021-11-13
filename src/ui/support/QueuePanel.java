@@ -13,7 +13,7 @@ public class QueuePanel extends JPanel {
     private final String[] columnTitles = new String[]{"Title", "Album", "Artist", "Year", "Length", "LengthInS", "ID"};
     private final JTable queueList;
 
-    private final JButton playNowButton = new JButton("Play Now");
+    public final JButton playNowButton = new JButton("Play Now");
     private final JButton removeSongButton = new JButton("Remove");
 
     private final WindowListener windowListener;

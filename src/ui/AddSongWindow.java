@@ -217,7 +217,7 @@ public class AddSongWindow extends Thread {
                                     songLength,
                                     songLengthSeconds,
                                     songID};
-                            buttonListenerAddSongOK.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
+                        buttonListenerAddSongOK.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, null));
                             window.dispatchEvent(new WindowEvent(window, WindowEvent.WINDOW_CLOSING));
                         } else {
                             if (lengthWarningTimer.isRunning()) lengthWarningTimer.stop();
@@ -264,7 +264,7 @@ public class AddSongWindow extends Thread {
      * [3] Song Year<br>
      * [4] Song Length in the format 00:00<br>
      * [5] Song Length in seconds<br>
-     * [6] Song ID
+     * [6] Song ID  x
      */
     public String[] getSong() {
         String[] newSong = new String[song.length];
