@@ -106,7 +106,7 @@ public class Player {
         }
         else {
             this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(this.currentSong[5]),
-                    this.stopTime + 1, Integer.parseInt(this.currentSong[6]), this.playerQueue.length );
+                    this.stopTime , Integer.parseInt(this.currentSong[6]), this.playerQueue.length );
             this.sp_thread.start();
             this.playerWindow.updatePlayPauseButton(true);
             this.isPlaying = true;
@@ -171,6 +171,7 @@ public class Player {
             old_index++;
 
         }
+
         this.playerQueue = newQueue;
         this.playerWindow.updateQueueList(newQueue);
     }

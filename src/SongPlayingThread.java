@@ -18,11 +18,11 @@ public class SongPlayingThread extends Thread {
     public void run() {
         for (int i = startSong; i < songLength; i++){
             try {
-                Thread.sleep(1000);
                 this.playerWindow.updateMiniplayer(true, true, false, i,
                         this.songLength, this.song_id, this.queueSize);
+                Thread.sleep(1000);
             } catch (InterruptedException e) {
-                this.playerWindow.updateMiniplayer(true, false, false, i - 1,this.songLength, this.song_id, this.queueSize);
+                this.playerWindow.updateMiniplayer(true, false, false, i,this.songLength, this.song_id, this.queueSize);
                 return;
             }
 
