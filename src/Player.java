@@ -26,9 +26,9 @@ public class Player {
 
         // Setting initial songs for easier debugging
         for (int i = 0; i < 5; i++){
-            this.playerQueue[i][0] = "Title " + String.valueOf(i);
-            this.playerQueue[i][1] = "Album " + String.valueOf(i);
-            this.playerQueue[i][2] = "Artist " + String.valueOf(i);
+            this.playerQueue[i][0] = "Title " + i;
+            this.playerQueue[i][1] = "Album " + i;
+            this.playerQueue[i][2] = "Artist " + i;
             this.playerQueue[i][3] = "2020";
             this.playerQueue[i][4] = "00:05:00";
             this.playerQueue[i][5] = "300";
