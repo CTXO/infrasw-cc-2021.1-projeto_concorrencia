@@ -2,20 +2,17 @@ import ui.AddSongWindow;
 import ui.PlayerWindow;
 
 import java.awt.event.*;
-import java.sql.SQLOutput;
-import java.util.ArrayList;
-import java.util.Queue;
 
 
 public class Player {
     AddSongWindow addSongWindow;
     PlayerWindow playerWindow;
-    String[][] playerQueue;
+    String[][] playerQueue = new String[5][7]; // Instantiating for debugging
     SongPlayingThread sp_thread;
     String[] currentSong;
     boolean isPlaying = false;
     int counter = 1;
-    int stopTime;
+    int resumeTime;
     public Player() {
         ActionListener buttonListenerPlayNow =  e -> start();
         ActionListener buttonListenerRemove =  e -> remove();
@@ -26,6 +23,18 @@ public class Player {
         ActionListener buttonListenerPrevious =  e -> previous();
         ActionListener buttonListenerShuffle =  e -> shuffle();
         ActionListener buttonListenerRepeat =  e -> repeat();
+
+        // Setting initial songs for easier debugging
+        for (int i = 0; i < 5; i++){
+            this.playerQueue[i][0] = "Title " + String.valueOf(i);
+            this.playerQueue[i][1] = "Album " + String.valueOf(i);
+            this.playerQueue[i][2] = "Artist " + String.valueOf(i);
+            this.playerQueue[i][3] = "2020";
+            this.playerQueue[i][4] = "00:05:00";
+            this.playerQueue[i][5] = "300";
+            this.playerQueue[i][6] = String.valueOf(this.counter);
+            this.counter++;
+        }
 
 
         MouseListener scrubberListenerClick = new MouseListener(){
@@ -99,14 +108,14 @@ public class Player {
 
     private void playPause() {
         if (this.isPlaying){
-            this.stopTime = this.playerWindow.getScrubberValue();
+            this.resumeTime = this.playerWindow.getScrubberValue() + 1;
             this.sp_thread.interrupt();
             this.playerWindow.updatePlayPauseButton(false);
             this.isPlaying = false;
         }
         else {
             this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(this.currentSong[5]),
-                    this.stopTime , Integer.parseInt(this.currentSong[6]), this.playerQueue.length );
+                    this.resumeTime, Integer.parseInt(this.currentSong[6]), this.playerQueue.length );
             this.sp_thread.start();
             this.playerWindow.updatePlayPauseButton(true);
             this.isPlaying = true;
@@ -151,6 +160,7 @@ public class Player {
         playerWindow.enableScrubberArea();
         playerWindow.updatePlayingSongInfo(song[0], song[1], song[2]);
         this.sp_thread.start();
+        this.isPlaying = true;
 
 
     }
@@ -160,7 +170,6 @@ public class Player {
         String[][] newQueue = new String[queueLength - 1][7];
         int song_id = playerWindow.getSelectedSongID();
         int old_index = 0;
-        int new_index = 0;
 
         for (int i = 0; i < queueLength - 1; i++){
             if (song_id == Integer.parseInt(this.playerQueue[old_index][6])){
@@ -171,7 +180,12 @@ public class Player {
             old_index++;
 
         }
-
+        if(song_id == Integer.parseInt(this.currentSong[6])){
+            this.sp_thread.interrupt();
+            playerWindow.disableScrubberArea();
+            playerWindow.updateMiniplayer(false, false, false,
+                    0, 0, 0, this.playerQueue.length);
+        }
         this.playerQueue = newQueue;
         this.playerWindow.updateQueueList(newQueue);
     }
