@@ -2,6 +2,8 @@ import ui.AddSongWindow;
 import ui.PlayerWindow;
 
 import java.awt.event.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 
 public class Player {
@@ -13,6 +15,8 @@ public class Player {
     boolean isPlaying = false;
     int counter = 1;
     int resumeTime;
+    private int currentSongQueueId;
+
     public Player() {
         ActionListener buttonListenerPlayNow =  e -> start();
         ActionListener buttonListenerRemove =  e -> remove();
@@ -97,11 +101,30 @@ public class Player {
     private void shuffle() {
     }
 
-    private void previous() {
+    private void changeSong(int idQueue){
+        String[] selectedSong = this.playerQueue[idQueue];
+        this.currentSongQueueId = idQueue;
+        this.sp_thread.interrupt();
+        this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(selectedSong[5]),
+                0, this.currentSongQueueId, this.playerQueue.length);
+        playerWindow.updatePlayingSongInfo(selectedSong[0], selectedSong[1], selectedSong[2]);
+        this.currentSong = selectedSong;
+        this.playerWindow.queuePanel.queueList.setRowSelectionInterval(this.currentSongQueueId, this.currentSongQueueId);
+        this.sp_thread.start();
     }
 
-    private void next() {
+    private void previous() {
+       changeSong(this.currentSongQueueId - 1);
+
     }
+
+
+
+    private void next() {
+        changeSong(this.currentSongQueueId + 1);
+    }
+
+
 
     private void stop() {
     }
@@ -115,7 +138,7 @@ public class Player {
         }
         else {
             this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(this.currentSong[5]),
-                    this.resumeTime, Integer.parseInt(this.currentSong[6]), this.playerQueue.length );
+                    this.resumeTime, this.currentSongQueueId, this.playerQueue.length );
             this.sp_thread.start();
             this.playerWindow.updatePlayPauseButton(true);
             this.isPlaying = true;
@@ -149,14 +172,18 @@ public class Player {
         }
         int song_id = playerWindow.getSelectedSongID();
         String[] song = {};
+        int i = 0;
         for (String[] s: this.playerQueue){
             if (Integer.parseInt(s[6]) == song_id){
                 song = s;
+                this.currentSongQueueId = i;
                 break;
             }
+            i++;
         }
         this.currentSong = song;
-        this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(song[5]), 0, song_id, this.playerQueue.length);
+        this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(song[5]), 0, this.currentSongQueueId,
+                                                                                        this.playerQueue.length);
         playerWindow.enableScrubberArea();
         playerWindow.updatePlayingSongInfo(song[0], song[1], song[2]);
         this.sp_thread.start();
@@ -167,6 +194,7 @@ public class Player {
 
     private void remove() {
         int queueLength = this.playerQueue.length;
+        System.out.println("length");
         String[][] newQueue = new String[queueLength - 1][7];
         int song_id = playerWindow.getSelectedSongID();
         int old_index = 0;
@@ -180,11 +208,13 @@ public class Player {
             old_index++;
 
         }
-        if(song_id == Integer.parseInt(this.currentSong[6])){
-            this.sp_thread.interrupt();
-            playerWindow.disableScrubberArea();
-            playerWindow.updateMiniplayer(false, false, false,
-                    0, 0, 0, this.playerQueue.length);
+        if (this.isPlaying) {
+            if (song_id == Integer.parseInt(this.currentSong[6])) {
+                this.sp_thread.interrupt();
+                playerWindow.disableScrubberArea();
+                playerWindow.updateMiniplayer(false, false, false,
+                        0, 0, 0, this.playerQueue.length);
+            }
         }
         this.playerQueue = newQueue;
         this.playerWindow.updateQueueList(newQueue);
