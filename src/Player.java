@@ -16,6 +16,7 @@ public class Player {
     int counter = 1;
     int resumeTime;
     private int currentSongQueueId;
+    private int new_time;
 
     public Player() {
         ActionListener buttonListenerPlayNow =  e -> start();
@@ -43,13 +44,18 @@ public class Player {
 
         MouseListener scrubberListenerClick = new MouseListener(){
             @Override
-            public void mouseClicked(MouseEvent e) {}
+            public void mouseClicked(MouseEvent e) {
+            }
 
             @Override
-            public void mouseReleased(MouseEvent e){}
+            public void mouseReleased(MouseEvent e){
+                click_up();
+            }
 
             @Override
-            public void mousePressed(MouseEvent e){}
+            public void mousePressed(MouseEvent e){
+                click_down();
+            }
 
             @Override
             public void mouseEntered(MouseEvent e){}
@@ -60,10 +66,14 @@ public class Player {
 
         MouseMotionListener scrubberListenerMotion = new MouseMotionListener(){
             @Override
-            public void mouseDragged(MouseEvent e) {}
+            public void mouseDragged(MouseEvent e) {
+                drag();
+            }
 
             @Override
-            public void mouseMoved(MouseEvent e){}
+            public void mouseMoved(MouseEvent e){
+
+            }
 
         };
 
@@ -128,6 +138,37 @@ public class Player {
 
     private void stop() {
     }
+    private void click_up() {
+       // System.out.println("mouseup");
+        this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(this.currentSong[5]), this.new_time
+                ,this.currentSongQueueId, this.playerQueue.length);
+        System.out.println(this.playerWindow.getScrubberValue());
+        this.sp_thread.start();
+
+    }
+    private void click_down() {
+        //System.out.println("mouse down");
+        if (this.sp_thread != null && !this.sp_thread.isInterrupted()){
+            this.sp_thread.interrupt();
+            this.sp_thread = null;
+
+            this.new_time = this.playerWindow.getScrubberValue();
+            System.out.println("should update to " + this.new_time);
+            drag();
+            this.playerWindow.updateMiniplayer(true,true,false,this.new_time,
+                    Integer.parseInt(this.currentSong[5]), this.currentSongQueueId, this.playerQueue.length);
+        }
+
+
+    }
+
+    private void drag() {
+        int value = this.playerWindow.getScrubberValue();
+        // System.out.println("Dragged " + value);
+        this.playerWindow.updateMiniplayer(true,true,false,value,
+                Integer.parseInt(this.currentSong[5]), this.currentSongQueueId, this.playerQueue.length);
+        this.new_time = playerWindow.getScrubberValue();
+    }
 
     private void playPause() {
         if (this.isPlaying){
@@ -166,7 +207,6 @@ public class Player {
     private void start() {
         this.playerWindow.queuePanel.playNowButton.setEnabled(false);
         if (this.sp_thread != null && !this.sp_thread.isInterrupted()){
-            System.out.println("interrupted thread");
             this.sp_thread.interrupt();
             this.sp_thread = null;
         }

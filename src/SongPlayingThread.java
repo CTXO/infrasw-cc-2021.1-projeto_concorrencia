@@ -20,8 +20,10 @@ public class SongPlayingThread extends Thread {
             try {
                 this.playerWindow.updateMiniplayer(true, true, false, i,
                         this.songLength, this.songQueueId, this.queueSize);
+                // System.out.println("thread started with " + this.startSong);
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
+                // System.out.println("thread interrupted");
                 this.playerWindow.updateMiniplayer(true, false, false,
                         i,this.songLength, this.songQueueId, this.queueSize);
                 return;
