@@ -16,7 +16,7 @@ public class SongPlayingThread extends Thread {
     }
     @Override
     public void run() {
-        for (int i = startSong; i < songLength; i++){
+        for (int i = startSong; i <= songLength; i++){
             try {
                 this.playerWindow.updateMiniplayer(true, true, false, i,
                         this.songLength, this.songQueueId, this.queueSize);
