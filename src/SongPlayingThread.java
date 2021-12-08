@@ -1,13 +1,14 @@
 import ui.PlayerWindow;
-
 public class SongPlayingThread extends Thread {
+    private Player player;
     private PlayerWindow playerWindow;
     private int songLength;
     private int startSong;
     private int songQueueId;
     private int queueSize;
 
-    public SongPlayingThread(PlayerWindow playerWindow, int songLength, int startSong, int songQueueId, int queueSize){
+    public SongPlayingThread(Player player, PlayerWindow playerWindow, int songLength, int startSong, int songQueueId, int queueSize){
+        this.player = player;
         this.playerWindow = playerWindow;
         this.songLength = songLength;
         this.startSong = startSong;
@@ -30,5 +31,13 @@ public class SongPlayingThread extends Thread {
             }
 
         }
+        if (player.rep_type == 0 && player.currentSongQueueId != player.playerQueue.length - 1){
+            player.next();
+        }
+        else if (player.rep_type == 2){
+            player.start();
+        }
+
     }
+
 }

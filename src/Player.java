@@ -14,10 +14,15 @@ public class Player {
     String[][] playerQueue = new String[5][7]; // Instantiating for debugging
     SongPlayingThread sp_thread;
     String[] currentSong;
+    boolean repeat_active = false;
+    boolean shuffle_active = false;
+    int rep_type; // 0 = sequential, 1 = shuffle, 2 = repeat
+
     boolean isPlaying = false;
     int counter = 1;
     int resumeTime;
-    private int currentSongQueueId;
+    public int currentSongQueueId;
+    public int[] shuffleQueue;
     private int new_time;
     private final Lock thread = new ReentrantLock();
 
@@ -109,6 +114,21 @@ public class Player {
 
 
     private void repeat() {
+        if (this.repeat_active) {
+            if (this.shuffle_active){
+                this.rep_type = 1;
+            }
+            else{
+                this.rep_type = 0;
+            }
+            this.repeat_active = false;
+            System.out.println("repeat disabled");
+        }
+        else {
+            this.rep_type = 2;
+            this.repeat_active = true;
+            System.out.println("repeat enabled");
+        }
     }
 
     private void shuffle() {
@@ -120,7 +140,7 @@ public class Player {
             String[] selectedSong = this.playerQueue[idQueue];
             this.currentSongQueueId = idQueue;
             this.sp_thread.interrupt();
-            this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(selectedSong[5]),
+            this.sp_thread = new SongPlayingThread(this, this.playerWindow, Integer.parseInt(selectedSong[5]),
                     0, this.currentSongQueueId, this.playerQueue.length);
             playerWindow.updatePlayingSongInfo(selectedSong[0], selectedSong[1], selectedSong[2]);
             this.currentSong = selectedSong;
@@ -143,7 +163,7 @@ public class Player {
 
 
 
-    private void next() {
+    public void next() {
         Thread t_next  = new Thread(() -> changeSong(this.currentSongQueueId + 1));
 
         t_next.start();
@@ -153,11 +173,13 @@ public class Player {
 
     private void stop() {
     }
+
+
     private void click_up() {
         Thread t_click_up = new Thread(() -> {
             try{
                 this.thread.lock();
-                this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(this.currentSong[5]), this.new_time
+                this.sp_thread = new SongPlayingThread(this, this.playerWindow, Integer.parseInt(this.currentSong[5]), this.new_time
                         ,this.currentSongQueueId, this.playerQueue.length);
                 // System.out.println(this.playerWindow.getScrubberValue());
                 this.sp_thread.start();
@@ -226,7 +248,7 @@ public class Player {
                     this.isPlaying = false;
                 }
                 else {
-                    this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(this.currentSong[5]),
+                    this.sp_thread = new SongPlayingThread(this, this.playerWindow, Integer.parseInt(this.currentSong[5]),
                             this.resumeTime, this.currentSongQueueId, this.playerQueue.length );
                     this.sp_thread.start();
                     this.playerWindow.updatePlayPauseButton(true);
@@ -276,7 +298,7 @@ public class Player {
 
     }
 
-    private void start() {
+    public void start() {
         Thread start_music = new Thread(() -> {
             try{
                 this.thread.lock();
@@ -299,7 +321,7 @@ public class Player {
                     i++;
                 }
                 this.currentSong = song;
-                this.sp_thread = new SongPlayingThread(this.playerWindow, Integer.parseInt(song[5]), 0, this.currentSongQueueId,
+                this.sp_thread = new SongPlayingThread(this, this.playerWindow, Integer.parseInt(song[5]), 0, this.currentSongQueueId,
                         this.playerQueue.length);
                 playerWindow.enableScrubberArea();
                 playerWindow.updatePlayingSongInfo(song[0], song[1], song[2]);
