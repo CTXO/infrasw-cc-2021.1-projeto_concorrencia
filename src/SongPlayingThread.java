@@ -31,11 +31,16 @@ public class SongPlayingThread extends Thread {
             }
 
         }
-        if (player.rep_type == 0 && player.currentSongQueueId != player.playerQueue.length - 1){
-            player.next();
+        if (player.rep_type == 0){
+            if (player.currentSongQueueId != player.playerQueue.length - 1) {
+                player.next();
+            }
+            else{
+                player.changeSong(0);
+            }
         }
         else if (player.rep_type == 1) {
-            this.player.changeSong(this.player.shuffleQueue[this.player.shuffleIndex++]);
+            player.changeSong(player.shuffleQueue[player.shuffleIndex++ % player.shuffleQueue.length]);
         }
         else if (player.rep_type == 2){
             player.start();
