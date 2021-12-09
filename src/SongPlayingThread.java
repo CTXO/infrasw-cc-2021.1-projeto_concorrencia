@@ -34,6 +34,9 @@ public class SongPlayingThread extends Thread {
         if (player.rep_type == 0 && player.currentSongQueueId != player.playerQueue.length - 1){
             player.next();
         }
+        else if (player.rep_type == 1) {
+            this.player.changeSong(this.player.shuffleQueue[this.player.shuffleIndex++]);
+        }
         else if (player.rep_type == 2){
             player.start();
         }

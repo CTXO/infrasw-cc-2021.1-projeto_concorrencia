@@ -3,6 +3,7 @@ import ui.PlayerWindow;
 
 import javax.swing.*;
 import java.awt.event.*;
+import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -23,6 +24,7 @@ public class Player {
     int resumeTime;
     public int currentSongQueueId;
     public int[] shuffleQueue;
+    public int shuffleIndex;
     private int new_time;
     private final Lock thread = new ReentrantLock();
 
@@ -131,10 +133,52 @@ public class Player {
         }
     }
 
-    private void shuffle() {
+    private void createShuffleQueue(int songQueueId){
+        Integer[] shuffleQueueTemp = new Integer[this.playerQueue.length - 1];
+
+        int count = 0;
+        for (int i = 0; i < this.playerQueue.length; i++){
+            if (i != songQueueId) {
+                shuffleQueueTemp[count] = i;
+                count++;
+            }
+        }
+
+        List<Integer> tempList = Arrays.asList(shuffleQueueTemp);
+        Collections.shuffle(tempList);
+        this.shuffleQueue = new int[this.playerQueue.length];
+
+        for (int i = 0; i < this.playerQueue.length - 1; i++){
+            this.shuffleQueue[i] = tempList.get(i);
+            System.out.println(tempList.get(i));
+        }
+        this.shuffleQueue[this.playerQueue.length - 1] = this.currentSongQueueId;
+
     }
 
-    private void changeSong(int idQueue){
+    public void shuffle() {
+        if (this.shuffle_active){
+            this.rep_type = 1;
+            this.shuffle_active = false;
+            System.out.println("shuffle disabled");
+        }
+        else {
+
+            if (this.repeat_active){
+                this.rep_type = 2;
+            }
+            else{
+                this.rep_type = 1;
+            }
+            this.shuffle_active = true;
+            System.out.println("shuffle enabled");
+            Thread tCreateShuffle = new Thread(() -> { this.createShuffleQueue(this.currentSongQueueId); });
+            tCreateShuffle.start();
+
+        }
+    }
+
+    public void changeSong(int idQueue){
         try{
             this.thread.lock();
             String[] selectedSong = this.playerQueue[idQueue];
