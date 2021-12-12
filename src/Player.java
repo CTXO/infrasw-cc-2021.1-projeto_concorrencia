@@ -17,7 +17,6 @@ public class Player {
     String[] currentSong;
     boolean repeat_active = false;
     boolean shuffle_active = false;
-    int rep_type; // 0 = sequential, 1 = shuffle, 2 = repeat
 
     boolean isPlaying = false;
     int counter = 1;
@@ -105,7 +104,6 @@ public class Player {
                 this.playerQueue
         );
 
-
     }
 
     private String createID() {
@@ -117,17 +115,11 @@ public class Player {
 
     private void repeat() {
         if (this.repeat_active) {
-            if (this.shuffle_active){
-                this.rep_type = 1;
-            }
-            else{
-                this.rep_type = 0;
-            }
+
             this.repeat_active = false;
             System.out.println("repeat disabled");
         }
         else {
-            this.rep_type = 2;
             this.repeat_active = true;
             System.out.println("repeat enabled");
         }
@@ -148,28 +140,24 @@ public class Player {
         Collections.shuffle(tempList);
         this.shuffleQueue = new int[this.playerQueue.length];
 
-        for (int i = 0; i < this.playerQueue.length - 1; i++){
-            this.shuffleQueue[i] = tempList.get(i);
-            System.out.println(tempList.get(i));
+        for (int i = 1; i < this.playerQueue.length; i++){
+            this.shuffleQueue[i] = tempList.get(i-1);
         }
-        this.shuffleQueue[this.playerQueue.length - 1] = this.currentSongQueueId;
+        this.shuffleQueue[0] = this.currentSongQueueId;
+
+        for (int i = 0; i < this.shuffleQueue.length; i++) {
+            System.out.println(this.shuffleQueue[i]);
+        }
 
     }
 
     public void shuffle() {
+        this.shuffleIndex = 0;
         if (this.shuffle_active){
-            this.rep_type = 1;
             this.shuffle_active = false;
             System.out.println("shuffle disabled");
         }
         else {
-
-            if (this.repeat_active){
-                this.rep_type = 2;
-            }
-            else{
-                this.rep_type = 1;
-            }
             this.shuffle_active = true;
             System.out.println("shuffle enabled");
             Thread tCreateShuffle = new Thread(() -> { this.createShuffleQueue(this.currentSongQueueId); });
@@ -201,21 +189,107 @@ public class Player {
     }
 
     private void previous() {
-        Thread t_previous = new Thread(() -> changeSong(this.currentSongQueueId - 1));
+        Thread t_previous = new Thread(() -> {
+            if (this.shuffle_active && this.repeat_active){
+                try {
+                    this.changeSong(this.shuffleQueue[--this.shuffleIndex]);
+                }
+                catch (Exception e) {
+                    this.shuffleIndex = this.shuffleQueue.length - 1;
+                    this.changeSong(this.shuffleQueue[this.shuffleIndex]);
+                }
+            }
+            else if (this.shuffle_active) {
+                if (this.shuffleIndex != 0) {
+                    this.changeSong(this.shuffleQueue[--this.shuffleIndex]);
+                }
+                else {
+                    this.stop();
+                }
+            }
+            else if (this.repeat_active){
+                if (this.currentSongQueueId != 0) {
+                    changeSong(this.currentSongQueueId - 1);
+                }
+                else{
+                    this.changeSong(this.playerQueue.length-1);
+                }
+            }
+            else {
+                if (this.currentSongQueueId != 0) {
+                    changeSong(this.currentSongQueueId - 1);
+                }
+                else{
+                    this.stop();
+                }
+            }
+        });
+
         t_previous.start();
     }
 
 
 
     public void next() {
-        Thread t_next  = new Thread(() -> changeSong(this.currentSongQueueId + 1));
+        Thread t_next  = new Thread(() ->
+        {
+            if (this.shuffle_active && this.repeat_active){
+                try {
+                    this.changeSong(this.shuffleQueue[++this.shuffleIndex]);
+                }
+                catch (Exception e) {
+                    this.shuffleIndex = 0;
+                    this.changeSong(this.shuffleQueue[this.shuffleIndex]);
 
+                }
+            }
+            else if (this.shuffle_active) {
+                if (this.shuffleIndex != this.shuffleQueue.length - 1) {
+                    this.changeSong(this.shuffleQueue[++this.shuffleIndex]);
+
+                }
+                else {
+                    this.stop();
+                    this.shuffleIndex = 0;
+                }
+            }
+            else if (this.repeat_active){
+                if (this.currentSongQueueId != this.playerQueue.length - 1) {
+                    changeSong(this.currentSongQueueId + 1);
+                }
+                else{
+                    this.changeSong(0);
+                }
+            }
+            else {
+                if (this.currentSongQueueId != this.playerQueue.length - 1) {
+                    changeSong(this.currentSongQueueId + 1);
+                }
+                else{
+                    this.stop();
+                }
+
+            }
+        });
         t_next.start();
     }
 
 
 
-    private void stop() {
+    public void stop() {
+        Thread t_stop = new Thread(() -> {
+            this.sp_thread.interrupt();
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            this.playerWindow.updateMiniplayer(false, false, false, 0, 0, 0, 0);
+        });
+        t_stop.start();
+
+
+
     }
 
 
@@ -249,7 +323,7 @@ public class Player {
                     this.new_time = this.playerWindow.getScrubberValue();
                     // System.out.println("should update to " + this.new_time);
                     drag();
-                    this.playerWindow.updateMiniplayer(true,true,false,this.new_time,
+                    this.playerWindow.updateMiniplayer(true,true,this.repeat_active,this.new_time,
                             Integer.parseInt(this.currentSong[5]), this.currentSongQueueId, this.playerQueue.length);
                 }
             }
@@ -268,7 +342,7 @@ public class Player {
                 this.thread.lock();
                 int value = this.playerWindow.getScrubberValue();
                 // System.out.println("Dragged " + value);
-                this.playerWindow.updateMiniplayer(true,true,false,value,
+                this.playerWindow.updateMiniplayer(true,true,this.repeat_active,value,
                         Integer.parseInt(this.currentSong[5]), this.currentSongQueueId, this.playerQueue.length);
                 this.new_time = playerWindow.getScrubberValue();
             }
@@ -323,6 +397,10 @@ public class Player {
                     newQueue[queueLength] = song;
                     this.playerQueue = newQueue;
                     this.playerWindow.updateQueueList(newQueue);
+                    if (this.shuffle_active){
+                        this.createShuffleQueue(this.currentSongQueueId);
+                        this.shuffleIndex = 0;
+                    }
                 }
                 finally {
                     this.thread.unlock();
@@ -346,9 +424,6 @@ public class Player {
         Thread start_music = new Thread(() -> {
             try{
                 this.thread.lock();
-                SwingUtilities.invokeLater(() -> {
-                    this.playerWindow.queuePanel.playNowButton.setEnabled(false);
-                });
                 if (this.sp_thread != null && !this.sp_thread.isInterrupted()){
                     this.sp_thread.interrupt();
                     this.sp_thread = null;
@@ -362,9 +437,15 @@ public class Player {
                         this.currentSongQueueId = i;
                         break;
                     }
+
                     i++;
                 }
+
                 this.currentSong = song;
+                if (this.shuffle_active) {
+                    this.createShuffleQueue(this.currentSongQueueId);
+                    this.shuffleIndex = 0;
+                }
                 this.sp_thread = new SongPlayingThread(this, this.playerWindow, Integer.parseInt(song[5]), 0, this.currentSongQueueId,
                         this.playerQueue.length);
                 playerWindow.enableScrubberArea();
@@ -407,6 +488,9 @@ public class Player {
                 }
                 this.playerQueue = newQueue;
                 this.playerWindow.updateQueueList(newQueue);
+                if (this.shuffle_active) {
+                    this.createShuffleQueue(this.currentSongQueueId);
+                }
             }
             finally {
                 this.thread.unlock();

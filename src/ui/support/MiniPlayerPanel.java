@@ -21,8 +21,8 @@ public class MiniPlayerPanel extends JPanel {
 
     private final JButton miniPlayerPlayPauseButton = new JButton(iconPlay);
     private final JButton miniPlayerStopButton = new JButton(iconStop);
-    private final JButton miniPlayerPreviousButton = new JButton(iconPrevious);
-    private final JButton miniPlayerNextButton = new JButton(iconNext);
+    public JButton miniPlayerPreviousButton = new JButton(iconPrevious);
+    public JButton miniPlayerNextButton = new JButton(iconNext);
     private final JLabel miniPlayerSongInfo = new JLabel();
     private final JLabel miniPlayerCurrentTime = new JLabel("- - : - -");
     private final JSlider miniPlayerScrubber = new JSlider();
@@ -162,7 +162,8 @@ public class MiniPlayerPanel extends JPanel {
             if (!isRepeat) {
                 miniPlayerPreviousButton.setEnabled(songIndex > 0);
                 miniPlayerNextButton.setEnabled(songIndex < queueSize - 1);
-            } else {
+            }
+            else {
                 miniPlayerPreviousButton.setEnabled(true);
                 miniPlayerNextButton.setEnabled(true);
             }

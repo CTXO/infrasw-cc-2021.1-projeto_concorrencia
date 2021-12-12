@@ -19,7 +19,7 @@ public class PlayerWindow extends Thread {
     private final JFrame window;
     private final JPanel mainPanel;
     public final QueuePanel queuePanel;
-    private final MiniPlayerPanel miniPlayerPanel;
+    public MiniPlayerPanel miniPlayerPanel;
 
     // TODO Sincronizar
 
